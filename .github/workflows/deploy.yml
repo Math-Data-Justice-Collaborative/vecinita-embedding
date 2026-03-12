@@ -69,8 +69,8 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     env:
-      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID }}
-      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET }}
+      MODAL_TOKEN_ID: ${{ secrets.MODAL_TOKEN_ID != '' && secrets.MODAL_TOKEN_ID || secrets.MODAL_AUTH_KEY }}
+      MODAL_TOKEN_SECRET: ${{ secrets.MODAL_TOKEN_SECRET != '' && secrets.MODAL_TOKEN_SECRET || secrets.MODAL_AUTH_SECRET }}
 
     steps:
       - name: Check out repository
@@ -98,4 +98,4 @@ jobs:
           pip install ".[dev]"
 
       - name: Deploy app
-        run: python3 -m modal deploy main.py
+        run: PYTHONPATH=src python3 -m modal deploy src/vecinita/app.py

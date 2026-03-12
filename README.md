@@ -80,7 +80,7 @@ tests/
 ```bash
 python3.11 -m pip install --upgrade pip
 pip install -e ".[dev]"
-python3.11 -m modal serve main.py
+PYTHONPATH=src python3.11 -m modal serve src/vecinita/app.py
 ```
 
 ## Quality checks
@@ -95,7 +95,7 @@ The test suite includes unit and integration coverage and fails below 95% line c
 ## Deploy
 
 ```bash
-python3.11 -m modal deploy main.py
+PYTHONPATH=src python3.11 -m modal deploy src/vecinita/app.py
 ```
 
 The first container start on an empty `embedding-models` Modal Volume downloads and warms the model. Subsequent starts reuse the cached weights.
