@@ -98,4 +98,4 @@ jobs:
           pip install ".[dev]"
 
       - name: Deploy app
-        run: PYTHONPATH=src python3 -m modal deploy src/vecinita/app.py
+        run: python3 -m modal deploy main.py
