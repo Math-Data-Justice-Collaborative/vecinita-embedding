@@ -74,7 +74,9 @@ def create_app(service: EmbeddingService) -> FastAPI:
         responses={
             422: {"description": "The input query is empty or only whitespace."},
             500: {
-                "description": "Embedding generation failed due to a backend/runtime error."
+                "description": (
+                    "Embedding generation failed due to a backend/runtime error."
+                )
             },
         },
     )
@@ -98,10 +100,14 @@ def create_app(service: EmbeddingService) -> FastAPI:
         ),
         responses={
             422: {
-                "description": "The query list is invalid or includes empty/whitespace entries."
+                "description": (
+                    "The query list is invalid or includes empty/whitespace entries."
+                )
             },
             500: {
-                "description": "Embedding generation failed due to a backend/runtime error."
+                "description": (
+                    "Embedding generation failed due to a backend/runtime error."
+                )
             },
         },
     )
