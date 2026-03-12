@@ -5,7 +5,24 @@ A serverless text embedding API built with [FastAPI](https://fastapi.tiangolo.co
 - **Embedding model**: `BAAI/bge-small-en-v1.5` (384-dim, fast ONNX)
 - **Deployment**: Modal serverless (auto-scales to zero)
 - **Model storage**: Modal Volume (`embedding-models`), downloaded once
-- **Authentication**: handled externally by the Modal auth proxy
+- **Authentication**: enforced by the Modal auth proxy on the deployed ASGI app
+
+## Authentication
+
+This API is published behind the Modal auth proxy. In deployment, unauthorized
+requests are rejected before they reach FastAPI handlers.
+
+- Auth enforcement is enabled via the Modal ASGI configuration
+- Application routes assume trusted, proxy-authenticated callers
+- Keep client credentials/token setup aligned with your Modal environment
+
+## API documentation
+
+OpenAPI docs are served by FastAPI and include endpoint summaries, descriptions,
+request/response models, and error semantics.
+
+- Swagger UI: `/docs`
+- ReDoc: `/redoc`
 
 ## Repository layout
 
@@ -30,6 +47,11 @@ tests/
 | `GET` | `/health` | Health check |
 | `POST` | `/embed` | Embed a single query |
 | `POST` | `/embed/batch` | Embed a list of queries |
+
+Error behavior:
+
+- `422 Unprocessable Entity`: invalid request shape, empty query, or whitespace-only query
+- `500 Internal Server Error`: embedding backend/runtime failure
 
 ### `POST /embed`
 
@@ -91,6 +113,25 @@ make test
 ```
 
 The test suite includes unit and integration coverage and fails below 95% line coverage.
+
+### Live API tests
+
+Live tests exercise the deployed API over the network using `LIVE_API_URL`.
+Credentials for the Modal auth proxy are read from `MODAL_TOKEN_ID` and
+`MODAL_TOKEN_SECRET` (or fallback legacy names `MODAL_AUTH_KEY` and
+`MODAL_AUTH_SECRET`).
+
+Run only live tests:
+
+```bash
+PYTHONPATH=.:src pytest -m live --no-cov -q
+```
+
+Run all tests except live tests:
+
+```bash
+PYTHONPATH=.:src pytest -m "not live" -q
+```
 
 ## Deploy
 

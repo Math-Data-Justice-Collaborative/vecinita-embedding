@@ -29,6 +29,7 @@ addopts = "--cov --cov-report=term-missing --cov-report=xml"
 testpaths = ["tests"]
 markers = [
     "integration: exercises the FastAPI application boundary",
+    "live: exercises deployed API endpoints over the network",
 ]
 
 [tool.coverage.run]

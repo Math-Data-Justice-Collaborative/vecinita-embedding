@@ -48,6 +48,6 @@ class EmbeddingServiceContainer:
     def load_model(self) -> None:
         self.model = load_runtime_model()  # pragma: no cover
 
-    @modal.asgi_app()
+    @modal.asgi_app(requires_proxy_auth=True)
     def api(self):
         return build_web_app(self.model)  # pragma: no cover
