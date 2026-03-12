@@ -1,5 +1,8 @@
 # vecinita-embedding
 
+[![CI](https://github.com/Math-Data-Justice-Collaborative/vecinita-embedding/actions/workflows/ci.yml/badge.svg)](https://github.com/Math-Data-Justice-Collaborative/vecinita-embedding/actions/workflows/ci.yml)
+[![Deploy](https://github.com/Math-Data-Justice-Collaborative/vecinita-embedding/actions/workflows/deploy.yml/badge.svg)](https://github.com/Math-Data-Justice-Collaborative/vecinita-embedding/actions/workflows/deploy.yml)
+
 A serverless text embedding API built with [FastAPI](https://fastapi.tiangolo.com/), [FastEmbed](https://github.com/qdrant/fastembed), and [Modal](https://modal.com/).
 
 - **Embedding model**: `BAAI/bge-small-en-v1.5` (384-dim, fast ONNX)
