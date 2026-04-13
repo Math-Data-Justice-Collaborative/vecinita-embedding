@@ -53,7 +53,13 @@ class BatchQueryRequest(BaseModel):
         items = self.queries if self.queries is not None else self.texts
         if not items or len(items) < 1:
             raise ValueError("Provide non-empty queries or texts.")
-        return self.model_copy(update={"queries": list(items)})
+        normalized: list[str] = list(items)
+        for q in normalized:
+            if not q.strip():
+                raise ValueError(
+                    "Each query must be non-empty and not whitespace-only."
+                )
+        return self.model_copy(update={"queries": normalized})
 
 
 class EmbeddingResponse(BaseModel):
