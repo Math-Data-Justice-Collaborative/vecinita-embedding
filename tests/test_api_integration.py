@@ -82,6 +82,25 @@ def test_embed_batch_returns_embeddings(client: TestClient) -> None:
 
 
 @pytest.mark.integration
+def test_embed_batch_hyphen_path_accepts_texts_body(client: TestClient) -> None:
+    response = client.post(
+        "/embed-batch",
+        json={"texts": ["alpha", "beta"]},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["embeddings"] == [[0.1, 0.2, 0.3], [0.4, 0.5, 0.6]]
+
+
+@pytest.mark.integration
+def test_embed_accepts_text_field_alias(client: TestClient) -> None:
+    response = client.post("/embed", json={"text": "hello world"})
+
+    assert response.status_code == 200
+    assert response.json()["dimensions"] == 3
+
+
+@pytest.mark.integration
 def test_embed_batch_uses_requested_model(client: TestClient) -> None:
     response = client.post(
         "/embed/batch",
@@ -108,7 +127,7 @@ def test_embed_batch_validates_non_empty_list(client: TestClient) -> None:
     response = client.post("/embed/batch", json={"queries": []})
 
     assert response.status_code == 422
-    assert response.json()["detail"][0]["type"] == "too_short"
+    assert response.json()["detail"][0]["type"] == "value_error"
 
 
 @pytest.mark.integration

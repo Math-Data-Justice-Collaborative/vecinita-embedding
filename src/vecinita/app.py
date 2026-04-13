@@ -37,17 +37,17 @@ def build_web_app(model: Any):
     return create_app(EmbeddingService(model, default_model=DEFAULT_MODEL))
 
 
-@app.cls(
+@app.function(
     image=image,
     volumes={MODEL_DIR: model_volume},
+    timeout=600,
 )
-class EmbeddingServiceContainer:
-    """Serverless embedding service backed by FastEmbed and a Modal Volume."""
+@modal.asgi_app()
+def web_app():
+    """Modal HTTPS hostname matches backend deploy: ``…-embedding-web-app.modal.run``.
 
-    @modal.enter()
-    def load_model(self) -> None:
-        self.model = load_runtime_model()  # pragma: no cover
-
-    @modal.asgi_app()
-    def api(self):
-        return build_web_app(self.model)  # pragma: no cover
+    A class-based ASGI method (e.g. ``…Container.api``) registers a different
+    ``*.modal.run`` host than the gateway and shared env defaults expect.
+    """
+    model = load_runtime_model()  # pragma: no cover
+    return build_web_app(model)  # pragma: no cover

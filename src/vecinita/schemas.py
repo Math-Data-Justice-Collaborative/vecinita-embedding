@@ -1,23 +1,45 @@
-from pydantic import BaseModel, Field
+from __future__ import annotations
+
+from pydantic import BaseModel, Field, model_validator
 
 
 class QueryRequest(BaseModel):
     """Request model for embedding a single natural language query."""
 
-    query: str = Field(..., description="The natural language query to embed.")
+    query: str | None = Field(
+        default=None,
+        description="Primary text field (gateway and legacy clients).",
+    )
+    text: str | None = Field(
+        default=None,
+        description="Alias used by some callers (matches backend embedding service).",
+    )
     model: str | None = Field(
         default=None,
         description=(
             "Optional embedding model name. Defaults to the server's configured model."
         ),
     )
+
+    @model_validator(mode="after")
+    def require_query_or_text(self) -> "QueryRequest":
+        if self.query is None and self.text is None:
+            raise ValueError("Provide query or text.")
+        return self
 
 
 class BatchQueryRequest(BaseModel):
     """Request model for embedding a batch of natural language queries."""
 
-    queries: list[str] = Field(
-        ..., min_length=1, description="A list of natural language queries to embed."
+    queries: list[str] | None = Field(
+        default=None,
+        description="List of queries (preferred field name).",
+    )
+    texts: list[str] | None = Field(
+        default=None,
+        description=(
+            "Alias used by gateway fallback (matches backend ``/embed-batch``)."
+        ),
     )
     model: str | None = Field(
         default=None,
@@ -25,6 +47,13 @@ class BatchQueryRequest(BaseModel):
             "Optional embedding model name. Defaults to the server's configured model."
         ),
     )
+
+    @model_validator(mode="after")
+    def require_queries_or_texts(self) -> "BatchQueryRequest":
+        items = self.queries if self.queries is not None else self.texts
+        if not items or len(items) < 1:
+            raise ValueError("Provide non-empty queries or texts.")
+        return self.model_copy(update={"queries": list(items)})
 
 
 class EmbeddingResponse(BaseModel):

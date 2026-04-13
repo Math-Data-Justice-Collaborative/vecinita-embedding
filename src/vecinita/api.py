@@ -82,7 +82,8 @@ def create_app(service: EmbeddingService) -> FastAPI:
     )
     async def embed(request: QueryRequest) -> EmbeddingResponse:
         try:
-            return service.embed_query(request.query, request.model)
+            text = request.query if request.query is not None else (request.text or "")
+            return service.embed_query(text, request.model)
         except EmptyQueryError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except EmbeddingExecutionError as exc:
@@ -113,10 +114,36 @@ def create_app(service: EmbeddingService) -> FastAPI:
     )
     async def embed_batch(request: BatchQueryRequest) -> BatchEmbeddingResponse:
         try:
+            assert request.queries is not None
             return service.embed_batch(request.queries, request.model)
         except EmptyQueryError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
         except EmbeddingExecutionError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
+
+    @web_app.post(
+        "/embed-batch",
+        response_model=BatchEmbeddingResponse,
+        tags=["embedding"],
+        summary="Embed a batch (hyphen path, backend compatibility)",
+        description=(
+            "Same as ``POST /embed/batch``; exists so gateways that fall back to "
+            "``/embed-batch`` with a ``texts`` body succeed without 404."
+        ),
+        responses={
+            422: {
+                "description": (
+                    "The query list is invalid or includes empty/whitespace entries."
+                )
+            },
+            500: {
+                "description": (
+                    "Embedding generation failed due to a backend/runtime error."
+                )
+            },
+        },
+    )
+    async def embed_batch_hyphen(request: BatchQueryRequest) -> BatchEmbeddingResponse:
+        return await embed_batch(request)
 
     return web_app
