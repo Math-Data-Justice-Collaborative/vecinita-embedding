@@ -1,5 +1,6 @@
 """Modal entrypoint for the Vecinita embedding API."""
 
+import os
 from typing import Any
 
 import modal
@@ -7,6 +8,13 @@ import modal
 from .api import create_app
 from .constants import APP_NAME, DEFAULT_MODEL, MODEL_DIR, VOLUME_NAME
 from .service import EmbeddingService
+
+
+def _include_modal_web_endpoints() -> bool:
+    """Falsey ``VECINITA_MODAL_INCLUDE_WEB_ENDPOINTS`` skips ASGI (functions only)."""
+    v = os.environ.get("VECINITA_MODAL_INCLUDE_WEB_ENDPOINTS", "1").strip().lower()
+    return v in {"1", "true", "yes", "on"}
+
 
 app = modal.App(APP_NAME)
 model_volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
@@ -79,17 +87,15 @@ def embed_batch(queries: list[str]) -> dict[str, Any]:
     return _embed_batch_impl(queries)
 
 
-@app.function(
-    image=image,
-    volumes={MODEL_DIR: model_volume},
-    timeout=600,
-)
-@modal.asgi_app()
-def web_app():
-    """Modal HTTPS hostname matches backend deploy: ``…-embedding-web-app.modal.run``.
+if _include_modal_web_endpoints():
 
-    A class-based ASGI method (e.g. ``…Container.api``) registers a different
-    ``*.modal.run`` host than the gateway and shared env defaults expect.
-    """
-    model = load_runtime_model()  # pragma: no cover
-    return build_web_app(model)  # pragma: no cover
+    @app.function(
+        image=image,
+        volumes={MODEL_DIR: model_volume},
+        timeout=600,
+    )
+    @modal.asgi_app()
+    def web_app():
+        """ASGI app for embedding HTTP; host is on the Modal dashboard."""
+        model = load_runtime_model()  # pragma: no cover
+        return build_web_app(model)  # pragma: no cover

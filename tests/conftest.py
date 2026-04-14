@@ -1,5 +1,10 @@
 from __future__ import annotations
 
+import os
+
+# ``web_app`` is omitted when ``VECINITA_MODAL_INCLUDE_WEB_ENDPOINTS=0`` at import time.
+os.environ.setdefault("VECINITA_MODAL_INCLUDE_WEB_ENDPOINTS", "1")
+
 import pytest
 from fastapi.testclient import TestClient
 
