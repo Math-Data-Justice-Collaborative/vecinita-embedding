@@ -6,7 +6,9 @@ from .constants import DEFAULT_MODEL
 from .schemas import (
     BatchEmbeddingResponse,
     BatchQueryRequest,
+    EmbeddingLivenessResponse,
     EmbeddingResponse,
+    EmbeddingServiceRootResponse,
     QueryRequest,
 )
 from .service import EmbeddingExecutionError, EmbeddingService, EmptyQueryError
@@ -43,6 +45,7 @@ def create_app(service: EmbeddingService) -> FastAPI:
 
     @web_app.get(
         "/",
+        response_model=EmbeddingServiceRootResponse,
         tags=["health"],
         summary="Get service status and default model",
         description=(
@@ -50,17 +53,18 @@ def create_app(service: EmbeddingService) -> FastAPI:
             "configured for this deployment."
         ),
     )
-    async def root() -> dict[str, str]:
-        return {"status": "ok", "model": DEFAULT_MODEL}
+    async def root() -> EmbeddingServiceRootResponse:
+        return EmbeddingServiceRootResponse(status="ok", model=DEFAULT_MODEL)
 
     @web_app.get(
         "/health",
+        response_model=EmbeddingLivenessResponse,
         tags=["health"],
         summary="Get liveness status",
         description="Returns liveness information used by uptime checks and probes.",
     )
-    async def health() -> dict[str, str]:
-        return {"status": "ok"}
+    async def health() -> EmbeddingLivenessResponse:
+        return EmbeddingLivenessResponse(status="ok")
 
     @web_app.post(
         "/embed",
