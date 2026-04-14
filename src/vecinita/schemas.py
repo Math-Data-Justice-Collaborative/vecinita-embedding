@@ -98,7 +98,6 @@ class BatchQueryRequest(BaseModel):
                     "Each query must be non-empty and not whitespace-only."
                 )
         return self.model_copy(update={"queries": normalized})
-
     model_config = ConfigDict(
         json_schema_extra={
             "examples": [
