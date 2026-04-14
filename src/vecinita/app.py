@@ -66,7 +66,7 @@ def _embed_batch_impl(queries: list[str]) -> dict[str, Any]:
 )
 def embed_query(query: str) -> dict[str, Any]:
     """Function-style embedding endpoint for non-HTTP invocation."""
-    return _embed_query_impl(query)  # pragma: no cover
+    return _embed_query_impl(query)
 
 
 @app.function(
@@ -76,7 +76,7 @@ def embed_query(query: str) -> dict[str, Any]:
 )
 def embed_batch(queries: list[str]) -> dict[str, Any]:
     """Function-style batch embedding endpoint for non-HTTP invocation."""
-    return _embed_batch_impl(queries)  # pragma: no cover
+    return _embed_batch_impl(queries)
 
 
 @app.function(
