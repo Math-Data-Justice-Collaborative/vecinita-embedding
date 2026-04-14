@@ -144,6 +144,52 @@ class BatchQueryRequest(BaseModel):
         }
     )
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "examples": [
+                {
+                    "queries": [
+                        "First housing intake question",
+                        "Second housing intake question",
+                    ],
+                    "texts": None,
+                    "model": None,
+                },
+                {
+                    "queries": None,
+                    "texts": ["Legacy batch line one", "Legacy batch line two"],
+                    "model": None,
+                },
+                {
+                    "queries": [
+                        "WIC eligibility",
+                        "WIC appointment documents",
+                        "WIC clinic phone",
+                    ],
+                    "texts": None,
+                    "model": "sentence-transformers/all-MiniLM-L6-v2",
+                },
+                {
+                    "queries": [
+                        "Bus pass discount for seniors",
+                        "Reduced fare application site",
+                    ],
+                    "texts": None,
+                    "model": "BAAI/bge-small-en-v1.5",
+                },
+                {
+                    "queries": [
+                        "Food bank Tuesday hours",
+                        "Food bank address",
+                        "Food bank ID requirements",
+                    ],
+                    "texts": None,
+                    "model": None,
+                },
+            ]
+        }
+    )
+
 
 class EmbeddingResponse(BaseModel):
     """Response model for a single query embedding."""
