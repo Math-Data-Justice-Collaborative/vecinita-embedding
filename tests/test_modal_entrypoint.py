@@ -67,3 +67,27 @@ def test_build_web_app_creates_fastapi_app() -> None:
 
     assert response.status_code == 200
     assert response.json()["model"] == modal_app.DEFAULT_MODEL
+
+
+def test_embed_query_function_returns_embedding_payload(monkeypatch) -> None:
+    monkeypatch.setattr(
+        modal_app,
+        "load_runtime_model",
+        lambda: FakeEmbedder(vectors=[[0.11, 0.22, 0.33]]),
+    )
+    payload = modal_app._embed_query_impl("hello")
+    assert payload["model"] == modal_app.DEFAULT_MODEL
+    assert payload["dimension"] == 3
+    assert payload["embedding"] == [0.11, 0.22, 0.33]
+
+
+def test_embed_batch_function_returns_embeddings_payload(monkeypatch) -> None:
+    monkeypatch.setattr(
+        modal_app,
+        "load_runtime_model",
+        lambda: FakeEmbedder(vectors=[[0.1, 0.2], [0.3, 0.4]]),
+    )
+    payload = modal_app._embed_batch_impl(["a", "b"])
+    assert payload["model"] == modal_app.DEFAULT_MODEL
+    assert payload["dimension"] == 2
+    assert payload["embeddings"] == [[0.1, 0.2], [0.3, 0.4]]
