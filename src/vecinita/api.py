@@ -17,12 +17,12 @@ from .service import EmbeddingExecutionError, EmbeddingService, EmptyQueryError
 def create_app(service: EmbeddingService) -> FastAPI:
     """Create the ASGI app with a provided embedding service dependency."""
 
-    web_app = FastAPI(
+    http_app = FastAPI(
         title="Vecinita Embedding API",
         description=(
             "Generate vector embeddings for one query or batches of queries using "
-            "FastEmbed and FastAPI. Requests are protected by the Modal auth proxy, "
-            "so only authorized callers can access the API."
+            "FastEmbed and FastAPI. Used for local/Docker HTTP (``uvicorn``); Modal "
+            "production uses ``embed_query`` / ``embed_batch`` functions only."
         ),
         version="0.1.0",
         openapi_tags=[
@@ -43,7 +43,7 @@ def create_app(service: EmbeddingService) -> FastAPI:
         ],
     )
 
-    @web_app.get(
+    @http_app.get(
         "/",
         response_model=EmbeddingServiceRootResponse,
         tags=["health"],
@@ -56,7 +56,7 @@ def create_app(service: EmbeddingService) -> FastAPI:
     async def root() -> EmbeddingServiceRootResponse:
         return EmbeddingServiceRootResponse(status="ok", model=DEFAULT_MODEL)
 
-    @web_app.get(
+    @http_app.get(
         "/health",
         response_model=EmbeddingLivenessResponse,
         tags=["health"],
@@ -66,7 +66,7 @@ def create_app(service: EmbeddingService) -> FastAPI:
     async def health() -> EmbeddingLivenessResponse:
         return EmbeddingLivenessResponse(status="ok")
 
-    @web_app.post(
+    @http_app.post(
         "/embed",
         response_model=EmbeddingResponse,
         tags=["embedding"],
@@ -93,7 +93,7 @@ def create_app(service: EmbeddingService) -> FastAPI:
         except EmbeddingExecutionError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    @web_app.post(
+    @http_app.post(
         "/embed/batch",
         response_model=BatchEmbeddingResponse,
         tags=["embedding"],
@@ -125,7 +125,7 @@ def create_app(service: EmbeddingService) -> FastAPI:
         except EmbeddingExecutionError as exc:
             raise HTTPException(status_code=500, detail=str(exc)) from exc
 
-    @web_app.post(
+    @http_app.post(
         "/embed-batch",
         response_model=BatchEmbeddingResponse,
         tags=["embedding"],
@@ -150,4 +150,4 @@ def create_app(service: EmbeddingService) -> FastAPI:
     async def embed_batch_hyphen(request: BatchQueryRequest) -> BatchEmbeddingResponse:
         return await embed_batch(request)
 
-    return web_app
+    return http_app

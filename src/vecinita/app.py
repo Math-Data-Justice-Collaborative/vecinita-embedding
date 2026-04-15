@@ -1,27 +1,21 @@
-"""Modal entrypoint for the Vecinita embedding API."""
+"""Modal entrypoint for the Vecinita embedding service (functions only, no ASGI).
 
-import os
+Deploy with ``modal deploy main.py``. Call ``embed_query`` / ``embed_batch`` via
+``modal.Function.from_name`` (see gateway ``MODAL_FUNCTION_INVOCATION``) or
+``modal run ...::embed_query.remote(...)``.
+"""
+
 from typing import Any
 
 import modal
 
-from .api import create_app
 from .constants import APP_NAME, DEFAULT_MODEL, MODEL_DIR, VOLUME_NAME
-from .service import EmbeddingService
-
-
-def _include_modal_web_endpoints() -> bool:
-    """Falsey ``VECINITA_MODAL_INCLUDE_WEB_ENDPOINTS`` skips ASGI (functions only)."""
-    v = os.environ.get("VECINITA_MODAL_INCLUDE_WEB_ENDPOINTS", "1").strip().lower()
-    return v in {"1", "true", "yes", "on"}
-
 
 app = modal.App(APP_NAME)
 model_volume = modal.Volume.from_name(VOLUME_NAME, create_if_missing=True)
 image = modal.Image.debian_slim(python_version="3.11").pip_install(
     [
         "fastembed>=0.7.4",
-        "fastapi[standard]>=0.135.1",
     ]
 )
 
@@ -39,10 +33,6 @@ def warmup_embedding_model(model: Any) -> Any:
 
 def load_runtime_model() -> Any:
     return warmup_embedding_model(create_text_embedding())
-
-
-def build_web_app(model: Any):
-    return create_app(EmbeddingService(model, default_model=DEFAULT_MODEL))
 
 
 def _embed_query_impl(query: str) -> dict[str, Any]:
@@ -85,17 +75,3 @@ def embed_query(query: str) -> dict[str, Any]:
 def embed_batch(queries: list[str]) -> dict[str, Any]:
     """Function-style batch embedding endpoint for non-HTTP invocation."""
     return _embed_batch_impl(queries)
-
-
-if _include_modal_web_endpoints():
-
-    @app.function(
-        image=image,
-        volumes={MODEL_DIR: model_volume},
-        timeout=600,
-    )
-    @modal.asgi_app()
-    def web_app():
-        """ASGI app for embedding HTTP; host is on the Modal dashboard."""
-        model = load_runtime_model()  # pragma: no cover
-        return build_web_app(model)  # pragma: no cover

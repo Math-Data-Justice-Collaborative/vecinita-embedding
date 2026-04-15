@@ -7,6 +7,8 @@ from fastapi.testclient import TestClient
 
 import vecinita.app as modal_app
 from tests.fakes import FakeEmbedder
+from vecinita.api import create_app
+from vecinita.service import EmbeddingService
 
 
 def test_create_text_embedding_uses_default_configuration(monkeypatch) -> None:
@@ -59,8 +61,13 @@ def test_load_runtime_model_composes_creation_and_warmup(monkeypatch) -> None:
     assert warmed == (model, "ok")
 
 
-def test_build_web_app_creates_fastapi_app() -> None:
-    app = modal_app.build_web_app(FakeEmbedder(vectors=[[0.1, 0.2, 0.3]]))
+def test_create_app_with_service_exposes_health_metadata() -> None:
+    app = create_app(
+        EmbeddingService(
+            FakeEmbedder(vectors=[[0.1, 0.2, 0.3]]),
+            default_model=modal_app.DEFAULT_MODEL,
+        )
+    )
     client = TestClient(app)
 
     response = client.get("/")
