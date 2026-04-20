@@ -98,3 +98,19 @@ def test_embed_batch_function_returns_embeddings_payload(monkeypatch) -> None:
     assert payload["model"] == modal_app.DEFAULT_MODEL
     assert payload["dimension"] == 2
     assert payload["embeddings"] == [[0.1, 0.2], [0.3, 0.4]]
+
+
+def test_preview_text_truncates_long_input() -> None:
+    long_text = "x" * 300
+    preview = modal_app._preview_text(long_text, max_chars=50)
+    assert "…" in preview
+    assert "300 chars total" in preview
+
+
+def test_preview_floats_respects_head() -> None:
+    assert modal_app._preview_floats([1.0, 2.0, 3.0, 4.0, 5.0], head=2) == [1.0, 2.0]
+
+
+def test_ensure_vecinita_loggers_visible_is_idempotent() -> None:
+    modal_app._ensure_vecinita_loggers_visible()
+    modal_app._ensure_vecinita_loggers_visible()
